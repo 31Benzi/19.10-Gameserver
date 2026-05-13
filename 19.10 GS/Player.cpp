@@ -629,12 +629,13 @@ void Player::ClientOnPawnDied(AFortPlayerControllerAthena* PlayerController, FFo
 		}
 	}
 
-	std::thread([PlayerController]() {
+	auto PawnToDestroy = PlayerController->MyFortPawn;
+	std::thread([PawnToDestroy]() {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		if (PlayerController && PlayerController->MyFortPawn)
+		if (PawnToDestroy)
 		{
 			Misc::PlayersToDestroyLocked = true;
-			Misc::PlayersToDestroy.push_back(PlayerController->MyFortPawn);
+			Misc::PlayersToDestroy.push_back((AFortPlayerPawn*)PawnToDestroy);
 			Misc::PlayersToDestroyLocked = false;
 		}
 		}).detach();

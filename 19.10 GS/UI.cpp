@@ -354,7 +354,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         g_hwnd = hwnd;
         CreateRes();
         BuildControls(hwnd);
-        AppendLog(L"UI ready.  Configure options above, then click  LAUNCH SERVER.");
+        g_launched  = true;
+        g_statusStr = L"\u25cf  STARTING...";
+        AppendLog(L"Auto-starting server with saved settings...");
         return 0;
 
     case WM_ERASEBKGND:
@@ -436,11 +438,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         if (g_launched
          && mx >= g_rcRestart.left && mx < g_rcRestart.right
          && my >= g_rcRestart.top  && my < g_rcRestart.bottom) {
-            AppendLog(L"Restarting server...");
-            g_statusStr = L"\u25cf  RESTARTING...";
-            InvalidateRect(hwnd, nullptr, FALSE);
-            if (g_restartCb)
-                std::thread(g_restartCb).detach();
+            bool expected = false;
+            if (!bServerRestarting.compare_exchange_strong(expected, true)) {
+                AppendLog(L"Restart already in progress...");
+                return 0;
+            }
+            TriggerRestart();
         }
         return 0;
     }
@@ -519,6 +522,8 @@ void SetRestartCallback(void(*cb)()) {
 }
 
 void TriggerRestart() {
+    AddLog(L"Restarting server...");
+    SetStatus(L"\u25cf  RESTARTING...");
     if (g_restartCb)
         std::thread(g_restartCb).detach();
 }

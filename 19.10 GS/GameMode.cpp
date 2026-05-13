@@ -10,6 +10,20 @@
 #include "Options.h"
 #include "UI.h"
 
+bool GameMode::IsFirstPlayer = false;
+void GameMode::ResetState() {
+	AbilitySets.Free();
+	CurrentTeam = 3;
+	PlayersOnCurTeam = 0;
+	bReady = false;
+	bFirstDied = false;
+	bFirstPLayer = false;
+
+	Looting::TierDataAllGroups.Free();
+	Looting::LPGroupsAll.Free();
+	Misc::PlayersToDestroy.clear();
+}
+
 
 UFortPlaylistAthena* GetPlaylist()
 {
@@ -265,7 +279,11 @@ void GameMode::ReadyToStartMatch(UObject* Context, FFrame& Stack, bool* Ret) {
 			}
 		}
 
-		Utils::ExecHook(L"/Game/Athena/Items/Consumables/Parents/GA_Athena_MedConsumable_Parent.GA_Athena_MedConsumable_Parent_C.Triggered_4C02BFB04B18D9E79F84848FFE6D2C32", Misc::Athena_MedConsumable_Triggered, Misc::Athena_MedConsumable_TriggeredOG);
+		static bool bMedkitHooked = false;
+		if (!bMedkitHooked) {
+			Utils::ExecHook(L"/Game/Athena/Items/Consumables/Parents/GA_Athena_MedConsumable_Parent.GA_Athena_MedConsumable_Parent_C.Triggered_4C02BFB04B18D9E79F84848FFE6D2C32", Misc::Athena_MedConsumable_Triggered, Misc::Athena_MedConsumable_TriggeredOG);
+			bMedkitHooked = true;
+		}
 		UI::SetStatus(L"\u25cf  READY");
 		GameMode->bWorldIsReady = true;
 
@@ -290,8 +308,6 @@ APawn* GameMode::SpawnDefaultPawnFor(UObject* Context, FFrame& Stack, APawn** Re
 
 	auto PlayerController = NewPlayer->Cast<AFortPlayerController>();
 	if (!PlayerController) return *Ret = Pawn;
-
-	static bool IsFirstPlayer = false;
 
 	if (!IsFirstPlayer)
 	{
@@ -524,13 +540,9 @@ void GameMode::OnAircraftExitedDropZone(UObject* Context, FFrame& Stack)
 void GameMode::HandleMatchHasEnded(UObject* Context, FFrame& Stack)
 {
     Stack.IncrementCode();
-
-    UI::AddLog(L"Match ended. Triggering automatic server restart...");
-    
-    std::thread([]() {
-        Sleep(10000);
-        UI::TriggerRestart();
-    }).detach();
+    UI::AddLog(L"Match ended  \u2014  shutting down for auto-restart...");
+    Sleep(5000);
+    exit(0);
 }
 
 

@@ -16,6 +16,8 @@ public:
 	static inline bool PlayersToDestroyLocked = false;
 	static inline std::vector<AFortPlayerPawn*> PlayersToDestroy;
 	static inline int __Port;
+	static inline std::atomic<bool> bPendingRestart{false};
+	static inline std::atomic<bool> hasAClientConnected{false};
 	DefHookOg(float, GetMaxTickRate, UEngine*, float, bool);
 	static bool Listen();
 private:

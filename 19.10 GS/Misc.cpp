@@ -17,6 +17,15 @@ int Misc::GetNetMode() {
 }
 
 float Misc::GetMaxTickRate(UEngine* Engine, float DeltaTime, bool bAllowFrameRateSmoothing) {
+	if (bPendingRestart) {
+		bPendingRestart = false;
+		GameMode::ResetState();
+		UKismetSystemLibrary::ExecuteConsoleCommand(
+			UWorld::GetWorld(),
+			bCreative ? L"open Creative_NoApollo_Terrain" : L"open Artemis_Terrain",
+			nullptr);
+	}
+
 	// improper, DS is supposed to do hitching differently
 	return std::clamp(1.f / DeltaTime, 1.f, 120.f);
 }
@@ -27,35 +36,21 @@ void Misc::TickFlush(UNetDriver* Driver, float DeltaTime)
 {
 	if (Driver->ReplicationDriver)
 	{
-		{
-			static bool hasAClientConnected = false;
-			static bool bRestarting = false;
-			if (!hasAClientConnected && Driver->ClientConnections.Num() > 0)
-				hasAClientConnected = true;
-			else if (hasAClientConnected && !bRestarting && Driver->ClientConnections.Num() == 0) {
-				if (bDev) {
-					UI::AddLog(L"Player left  \u2014  dev mode, server stays alive.");
-					hasAClientConnected = false;
-				}
-				else {
-					bRestarting = true;
-					UI::AddLog(L"All players disconnected  \u2014  restarting server...");
-					UI::SetStatus(L"\u25cf  RESTARTING...");
-					std::thread([]() {
-						Sleep(3000);
-						GameMode::ResetState();
-						UKismetSystemLibrary::ExecuteConsoleCommand(
-							UWorld::GetWorld(),
-							bCreative ? L"open Creative_NoApollo_Terrain" : L"open Artemis_Terrain",
-							nullptr);
-						Sleep(12000);
-						hasAClientConnected = false;
-						bRestarting = false;
-						UI::SetStatus(L"\u25cf  READY");
-						UI::AddLog(L"Server reloaded  \u2014  waiting for players...");
-					}).detach();
-				}
+		static float EmptyServerTimer = 0;
+		if (!hasAClientConnected && Driver->ClientConnections.Num() > 0) {
+			hasAClientConnected = true;
+			EmptyServerTimer = 0;
+		}
+		else if (hasAClientConnected && Driver->ClientConnections.Num() == 0) {
+			EmptyServerTimer += DeltaTime;
+			if (EmptyServerTimer > 10.0f) { 
+				UI::AddLog(L"All players left  \u2014  shutting down for auto-restart...");
+				Sleep(2000);
+				exit(0);
 			}
+		}
+		else {
+			EmptyServerTimer = 0;
 		}
 
 		if (!PlayersToDestroyLocked && PlayersToDestroy.size() > 0)

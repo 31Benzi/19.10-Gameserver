@@ -1,8 +1,7 @@
-
-
 #pragma once
 #include "pch.h"
 #include "Utils.h"
+#include "Looting.h"
 
 extern bool bReady;
 extern bool bFirstDied;
@@ -23,14 +22,8 @@ private:
 	DefUHookOg(HandleMatchHasEnded);
 
 public:
-	static void ResetState() {
-		AbilitySets.ResetNum();
-		CurrentTeam = 3;
-		PlayersOnCurTeam = 0;
-		bReady = false;
-		bFirstDied = false;
-		bFirstPLayer = false;
-	}
+	static bool IsFirstPlayer;
+	static void ResetState();
 
 	InitHooks;
 };

@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "UI.h"
 #include "GameMode.h"
+#include "Misc.h"
 
 DefHookOg(void, Test, UAthenaNavSystem*, UWorld*, char);
 
@@ -40,16 +41,11 @@ static void RestartServer() {
     UI::SetStatus(L"\u25cf  RESTARTING...");
 
     Sleep(1500);
-    GameMode::ResetState();
-
-    UKismetSystemLibrary::ExecuteConsoleCommand(
-        UWorld::GetWorld(),
-        bCreative ? L"open Creative_NoApollo_Terrain" : L"open Artemis_Terrain",
-        nullptr
-    );
+    Misc::bPendingRestart = true;
 
     Sleep(8000);
 
+    bServerRestarting = false;
     UI::SetStatus(L"\u25cf  READY");
     UI::AddLog(L"Server map reloaded successfully.");
 }

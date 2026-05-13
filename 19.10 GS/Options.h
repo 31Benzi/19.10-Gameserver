@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <atomic>
 
 inline bool bDuos = false;
 inline bool bLateGame = false;
@@ -13,3 +14,5 @@ inline std::string bRegion = "EU";
 inline std::string eventId = "";
 
 inline int StartingCount = 0;
+
+inline std::atomic<bool> bServerRestarting{ false };

@@ -136,7 +136,7 @@ void Creative::TeleportPlayerToLinkedVolume(AFortAthenaCreativePortal* Portal, F
     auto PlayerState = (AFortPlayerStateAthena*)Controller->PlayerState;
     if (!PlayerState) return;
 
-    // Permissions & Ownership (Like Erbium)
+    // Permissions & Ownership
     auto LevelSaveComponent = (UFortLevelSaveComponent*)Volume->GetComponentByClass(UFortLevelSaveComponent::StaticClass());
     if (LevelSaveComponent)
     {
