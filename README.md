@@ -1,4 +1,6 @@
-# 19.10 Gameserver — Feature Comparison
+## PLS STAR THE REPO
+
+# 19.10 Gameserver Feature Comparison
 
 Comparison between **Crystal Old** (older branch) and **Crystal New** (newer branch).
 
